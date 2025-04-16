@@ -10,7 +10,7 @@ public class HelloController {
 
 	@RequestMapping("/")
 	public String index() {
-		return "Hello " + my_sql_db;
+		return "Hello World " + my_sql_db;
 	}
 
 }
