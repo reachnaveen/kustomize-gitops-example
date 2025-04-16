@@ -2,7 +2,8 @@ namePrefix: production-
 commonLabels:
   variant: production
 bases:
-- ../../base
+  - ../../base
 patchesStrategicMerge:
-- deployment.yaml
-- config-map.yaml
+  - deployment.yaml
+  - config-map.yaml
+images: []
