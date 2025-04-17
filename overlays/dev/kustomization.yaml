@@ -2,9 +2,9 @@ namePrefix: dev-
 commonLabels:
   variant: dev
 bases:
-- ../../base
+  - ../../base
 patchesStrategicMerge:
-- config-map.yaml
+  - config-map.yaml
 images:
   - name: reachnaveen/springboot-app
-    newTag: dev-6 # Set dynamically from Jenkins
+    newTag: v8 # Set dynamically from Jenkins
