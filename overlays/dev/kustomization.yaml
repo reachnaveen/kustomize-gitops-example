@@ -7,4 +7,4 @@ patchesStrategicMerge:
   - config-map.yaml
 images:
   - name: reachnaveen/springboot-app
-    newTag: v8 # Set dynamically from Jenkins
+    newTag: dev-10 # Set dynamically from Jenkins
