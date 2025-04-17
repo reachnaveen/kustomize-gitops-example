@@ -6,7 +6,7 @@ on:
       environment:
         description: 'Target environment (dev, qa, prod)'
         required: true
-        default: 'production'
+        default: 'dev'
   push:
     paths:
       - 'app/**'
@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE_TAG=${{ github.event.inputs.environment || 'production' }}-${{ github.run_number }}
+          IMAGE_TAG=${{ github.event.inputs.environment || 'dev' }}-${{ github.run_number }}
           docker build -t $IMAGE_NAME:$IMAGE_TAG ./app
           docker push $IMAGE_NAME:$IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
@@ -47,7 +47,7 @@ jobs:
 
       - name: Update kustomization.yaml for Environment
         run: |
-          ENV=${{ github.event.inputs.environment || 'production' }}
+          ENV=${{ github.event.inputs.environment || 'dev' }}
           yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/$ENV/kustomization.yaml
 
       - name: Commit and Push Changes

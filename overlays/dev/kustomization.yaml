@@ -1,0 +1,10 @@
+namePrefix: dev-
+commonLabels:
+  variant: dev
+bases:
+- ../../base
+patchesStrategicMerge:
+- config-map.yaml
+images:
+  - name: reachnaveen/springboot-app
+    newTag: dev-6 # Set dynamically from Jenkins

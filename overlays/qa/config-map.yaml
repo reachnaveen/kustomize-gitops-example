@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: the-map
 data:
-  mysqlDB: "prod-mysql.prunetest.example.com:3306"
+  mysqlDB: "qa-mysql.example.com:3306"

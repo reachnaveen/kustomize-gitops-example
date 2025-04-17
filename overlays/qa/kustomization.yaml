@@ -1,0 +1,11 @@
+namePrefix: qa-
+commonLabels:
+  variant: qa
+bases:
+- ../../base
+patchesStrategicMerge:
+  - deployment.yaml
+  - config-map.yaml
+images:
+  - name: reachnaveen/springboot-app
+    newTag: qa-6 # Set dynamically from Jenkins
