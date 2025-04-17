@@ -64,7 +64,7 @@ jobs:
           git config user.email "actions@github.com"
           git add overlays/dev/kustomization.yaml
           git commit -m "Deploy dev: $IMAGE_TAG"
-          git push origin main
+          git push origin ${GITHUB_REF_NAME}
 
   deploy-qa:
     name: Deploy to QA (Approval Required)
@@ -95,7 +95,7 @@ jobs:
           git config user.email "actions@github.com"
           git add overlays/qa/kustomization.yaml
           git commit -m "Deploy qa: $IMAGE_TAG"
-          git push origin main
+          git push origin ${GITHUB_REF_NAME}
 
   deploy-prod:
     name: Deploy to Prod (Approval Required)
@@ -126,4 +126,4 @@ jobs:
           git config user.email "actions@github.com"
           git add overlays/prod/kustomization.yaml
           git commit -m "Deploy prod: $IMAGE_TAG"
-          git push origin main
+          git push origin ${GITHUB_REF_NAME}
