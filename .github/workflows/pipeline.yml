@@ -61,18 +61,15 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-      - name: Update Dev Kustomization
-        run: |
-          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/dev/kustomization.yaml
-
-      - name: Commit & Push
+      - name: Update Dev Kustomization and Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git fetch origin ${GITHUB_REF_NAME}
-          git rebase origin/${GITHUB_REF_NAME}
+          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/dev/kustomization.yaml
           git add overlays/dev/kustomization.yaml
           git commit -m "Deploy dev: $IMAGE_TAG" || echo "No changes"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
           git push origin HEAD:${GITHUB_REF_NAME}
 
   deploy-qa:
@@ -93,18 +90,15 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-      - name: Update QA Kustomization
-        run: |
-          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/qa/kustomization.yaml
-
-      - name: Commit & Push
+      - name: Update QA Kustomization and Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git fetch origin ${GITHUB_REF_NAME}
-          git rebase origin/${GITHUB_REF_NAME}
+          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/qa/kustomization.yaml
           git add overlays/qa/kustomization.yaml
           git commit -m "Deploy qa: $IMAGE_TAG" || echo "No changes"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
           git push origin HEAD:${GITHUB_REF_NAME}
 
   deploy-prod:
@@ -125,16 +119,13 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-      - name: Update Prod Kustomization
-        run: |
-          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/prod/kustomization.yaml
-
-      - name: Commit & Push
+      - name: Update Prod Kustomization and Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git fetch origin ${GITHUB_REF_NAME}
-          git rebase origin/${GITHUB_REF_NAME}
+          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/prod/kustomization.yaml
           git add overlays/prod/kustomization.yaml
           git commit -m "Deploy prod: $IMAGE_TAG" || echo "No changes"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
           git push origin HEAD:${GITHUB_REF_NAME}
