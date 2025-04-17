@@ -1,18 +1,11 @@
-name: Build and Deploy Spring Boot App
+name: Multi-Stage Deploy Spring Boot App
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment (dev, qa, prod)'
-        required: true
-        default: 'dev'
-  push:
-    paths:
-      - 'app/**'
 
 jobs:
-  build-deploy:
+  build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
     env:
@@ -20,40 +13,117 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
 
+    outputs:
+      image_tag: ${{ steps.set-tag.outputs.tag }}
+
     steps:
-      - name: Checkout Repo
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
+      - name: Docker Login
         uses: docker/login-action@v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Build and Push Docker Image
+      - name: Set Tag
+        id: set-tag
+        run: echo "tag=v${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push
         run: |
-          IMAGE_TAG=${{ github.event.inputs.environment || 'dev' }}-${{ github.run_number }}
-          docker build -t $IMAGE_NAME:$IMAGE_TAG ./app
-          docker push $IMAGE_NAME:$IMAGE_TAG
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t $IMAGE_NAME:${{ steps.set-tag.outputs.tag }} ./app
+          docker push $IMAGE_NAME:${{ steps.set-tag.outputs.tag }}
+
+  deploy-dev:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    env:
+      IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+
+    steps:
+      - uses: actions/checkout@v3
 
       - name: Install yq
         run: |
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-      - name: Update kustomization.yaml for Environment
+      - name: Update Dev Kustomization
         run: |
-          ENV=${{ github.event.inputs.environment || 'dev' }}
-          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/$ENV/kustomization.yaml
+          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/dev/kustomization.yaml
 
-      - name: Commit and Push Changes
+      - name: Commit Dev Changes
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add overlays/
-          git commit -m "Deploy ${{ github.event.inputs.environment }}: ${{ env.IMAGE_TAG }}"
+          git add overlays/dev/kustomization.yaml
+          git commit -m "Deploy dev: $IMAGE_TAG"
+          git push origin main
+
+  deploy-qa:
+    name: Deploy to QA (Approval Required)
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    environment:
+      name: qa
+      url: https://your-qa.example.com  # optional
+    env:
+      IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Update QA Kustomization
+        run: |
+          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/qa/kustomization.yaml
+
+      - name: Commit QA Changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add overlays/qa/kustomization.yaml
+          git commit -m "Deploy qa: $IMAGE_TAG"
+          git push origin main
+
+  deploy-prod:
+    name: Deploy to Prod (Approval Required)
+    runs-on: ubuntu-latest
+    needs: deploy-qa
+    environment:
+      name: prod
+      url: https://your-prod.example.com  # optional
+    env:
+      IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Update Prod Kustomization
+        run: |
+          yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/prod/kustomization.yaml
+
+      - name: Commit Prod Changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add overlays/prod/kustomization.yaml
+          git commit -m "Deploy prod: $IMAGE_TAG"
           git push origin main
