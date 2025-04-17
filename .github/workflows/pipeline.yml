@@ -2,25 +2,20 @@ name: Multi-Stage Deploy Spring Boot App
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment (dev, qa, prod)'
-        required: true
-        default: 'dev'
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Image
+    name: Build and Push Base Image (rel-<run_number>)
     runs-on: ubuntu-latest
 
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
-      ENVIRONMENT: ${{ github.event.inputs.environment }}
+      BASE_TAG: rel-${{ github.run_number }}
 
     outputs:
-      image_tag: ${{ steps.set-tag.outputs.tag }}
+      image_tag: ${{ env.BASE_TAG }}
 
     steps:
       - name: Checkout Code
@@ -35,15 +30,10 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Set Tag
-        id: set-tag
-        run: echo "tag=${{ env.ENVIRONMENT }}-${{ github.run_number }}" >> $GITHUB_OUTPUT
-
-      - name: Build and Push
+      - name: Build and Push Base Image
         run: |
-          docker build -t $IMAGE_NAME:${{ steps.set-tag.outputs.tag }} ./app
-          docker push $IMAGE_NAME:${{ steps.set-tag.outputs.tag }}
-          echo "IMAGE_TAG=${{ steps.set-tag.outputs.tag }}" >> $GITHUB_ENV
+          docker build -t $IMAGE_NAME:$BASE_TAG ./app
+          docker push $IMAGE_NAME:$BASE_TAG
 
   deploy-dev:
     name: Deploy to Dev
@@ -51,10 +41,23 @@ jobs:
     needs: build-and-push
     env:
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
-      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+      BASE_TAG: rel-${{ github.run_number }}
+      IMAGE_TAG: dev-${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Retag and Push Dev Image
+        run: |
+          docker pull $IMAGE_NAME:$BASE_TAG
+          docker tag $IMAGE_NAME:$BASE_TAG $IMAGE_NAME:$IMAGE_TAG
+          docker push $IMAGE_NAME:$IMAGE_TAG
 
       - name: Install yq
         run: |
@@ -80,10 +83,23 @@ jobs:
       name: qa
     env:
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
-      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+      BASE_TAG: rel-${{ github.run_number }}
+      IMAGE_TAG: qa-${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Retag and Push QA Image
+        run: |
+          docker pull $IMAGE_NAME:$BASE_TAG
+          docker tag $IMAGE_NAME:$BASE_TAG $IMAGE_NAME:$IMAGE_TAG
+          docker push $IMAGE_NAME:$IMAGE_TAG
 
       - name: Install yq
         run: |
@@ -109,10 +125,23 @@ jobs:
       name: prod
     env:
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
-      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+      BASE_TAG: rel-${{ github.run_number }}
+      IMAGE_TAG: prod-${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Retag and Push Prod Image
+        run: |
+          docker pull $IMAGE_NAME:$BASE_TAG
+          docker tag $IMAGE_NAME:$BASE_TAG $IMAGE_NAME:$IMAGE_TAG
+          docker push $IMAGE_NAME:$IMAGE_TAG
 
       - name: Install yq
         run: |
