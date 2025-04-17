@@ -2,6 +2,11 @@ name: Multi-Stage Deploy Spring Boot App
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (dev, qa, prod)'
+        required: true
+        default: 'dev'
 
 jobs:
   build-and-push:
@@ -12,6 +17,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
+      ENVIRONMENT: ${{ github.event.inputs.environment }}
 
     outputs:
       image_tag: ${{ steps.set-tag.outputs.tag }}
@@ -31,12 +37,13 @@ jobs:
 
       - name: Set Tag
         id: set-tag
-        run: echo "tag=v${{ github.run_number }}" >> $GITHUB_OUTPUT
+        run: echo "tag=${{ env.ENVIRONMENT }}-${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Build and Push
         run: |
           docker build -t $IMAGE_NAME:${{ steps.set-tag.outputs.tag }} ./app
           docker push $IMAGE_NAME:${{ steps.set-tag.outputs.tag }}
+          echo "IMAGE_TAG=${{ steps.set-tag.outputs.tag }}" >> $GITHUB_ENV
 
   deploy-dev:
     name: Deploy to Dev
@@ -58,21 +65,22 @@ jobs:
         run: |
           yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/dev/kustomization.yaml
 
-      - name: Commit Dev Changes
+      - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
           git add overlays/dev/kustomization.yaml
-          git commit -m "Deploy dev: $IMAGE_TAG"
-          git push origin ${GITHUB_REF_NAME}
+          git commit -m "Deploy dev: $IMAGE_TAG" || echo "No changes"
+          git push origin HEAD:${GITHUB_REF_NAME}
 
   deploy-qa:
-    name: Deploy to QA (Approval Required)
+    name: Deploy to QA
     runs-on: ubuntu-latest
     needs: deploy-dev
     environment:
       name: qa
-      url: https://your-qa.example.com  # optional
     env:
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
@@ -89,21 +97,22 @@ jobs:
         run: |
           yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/qa/kustomization.yaml
 
-      - name: Commit QA Changes
+      - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
           git add overlays/qa/kustomization.yaml
-          git commit -m "Deploy qa: $IMAGE_TAG"
-          git push origin ${GITHUB_REF_NAME}
+          git commit -m "Deploy qa: $IMAGE_TAG" || echo "No changes"
+          git push origin HEAD:${GITHUB_REF_NAME}
 
   deploy-prod:
-    name: Deploy to Prod (Approval Required)
+    name: Deploy to Prod
     runs-on: ubuntu-latest
     needs: deploy-qa
     environment:
       name: prod
-      url: https://your-prod.example.com  # optional
     env:
       IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/springboot-app
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
@@ -120,10 +129,12 @@ jobs:
         run: |
           yq eval '(.images[] | select(.name == "${{ env.IMAGE_NAME }}").newTag) = "${{ env.IMAGE_TAG }}"' -i overlays/prod/kustomization.yaml
 
-      - name: Commit Prod Changes
+      - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
           git add overlays/prod/kustomization.yaml
-          git commit -m "Deploy prod: $IMAGE_TAG"
-          git push origin ${GITHUB_REF_NAME}
+          git commit -m "Deploy prod: $IMAGE_TAG" || echo "No changes"
+          git push origin HEAD:${GITHUB_REF_NAME}
