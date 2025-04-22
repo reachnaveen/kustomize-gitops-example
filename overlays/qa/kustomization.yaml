@@ -13,4 +13,4 @@ generatorOptions:
   disableNameSuffixHash: true
 images:
   - name: reachnaveen/springboot-app
-    newTag: "qa-15" # Set dynamically from Jenkins
+    newTag: "qa-17" # Set dynamically from Jenkins
