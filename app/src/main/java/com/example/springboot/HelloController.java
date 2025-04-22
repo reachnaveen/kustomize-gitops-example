@@ -6,11 +6,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RestController
 public class HelloController {
 
-	String message = System.getenv("welcome.message");
+	@Value("${welcome.message}")
+    	private String greeterMessageFormat; 
 
 	@RequestMapping("/")
 	public String index() {
-		return "Hello " + message;
+		return "Hello " + greeterMessageFormat;
 	}
 
 }
