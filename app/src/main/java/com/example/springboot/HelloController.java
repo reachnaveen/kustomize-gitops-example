@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RestController
 public class HelloController {
 
-	String message = System.getenv("welcome.message");
+	String my_sql_db = System.getenv("MY_MYSQL_DB");
 
 	@RequestMapping("/")
 	public String index() {
-		return "Hello GitHub Action " + message;
+		return "Hello GitHub Action " + my_sql_db;
 	}
 
 }
