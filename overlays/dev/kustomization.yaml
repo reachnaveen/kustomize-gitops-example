@@ -4,7 +4,13 @@ commonLabels:
 bases:
   - ../../base
 patchesStrategicMerge:
-  - config-map.yaml
+  - deployment.yaml
+configMapGenerator:
+  - name: springboot-app-config
+    files:
+      - application.properties
+generatorOptions:
+  disableNameSuffixHash: true
 images:
   - name: reachnaveen/springboot-app
     newTag: dev-11 # Set dynamically from Jenkins

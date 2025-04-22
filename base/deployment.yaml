@@ -17,9 +17,11 @@ spec:
         ports:
         - containerPort: 8080
         imagePullPolicy: Always
-        env:
-        - name: MY_MYSQL_DB
-          valueFrom:
-            configMapKeyRef:
-              name: the-map
-              key: mysqlDB
+        volumeMounts:
+          - name: config-volume
+            mountPath: /config/application.properties
+            subPath: application.properties
+      volumes:
+        - name: config-volume
+          configMap:
+            name: springboot-app-config

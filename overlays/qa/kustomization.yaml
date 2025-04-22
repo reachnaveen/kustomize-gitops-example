@@ -5,7 +5,12 @@ bases:
   - ../../base
 patchesStrategicMerge:
   - deployment.yaml
-  - config-map.yaml
+configMapGenerator:
+  - name: springboot-app-config
+    files:
+      - application.properties
+generatorOptions:
+  disableNameSuffixHash: true
 images:
   - name: reachnaveen/springboot-app
     newTag: "qa-11" # Set dynamically from Jenkins
