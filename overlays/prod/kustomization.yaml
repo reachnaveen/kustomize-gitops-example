@@ -1,16 +1,22 @@
 namePrefix: production-
-commonLabels:
-  variant: production
-bases:
-  - ../../base
-patchesStrategicMerge:
-  - deployment.yaml
+resources:
+ - deployment.yaml
+ - ingress.yaml
+ - bluegreen-service.yaml
+ - springboot-app-preview.yaml
 configMapGenerator:
-  - name: springboot-app-config
-    files:
-      - application.properties
+- files:
+  - application.properties
+  name: springboot-app-config
 generatorOptions:
   disableNameSuffixHash: true
 images:
-  - name: reachnaveen/springboot-app
-    newTag: "prod-20" # Set dynamically from Jenkins
+- name: reachnaveen/springboot-app
+  newTag: prod-20
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+labels:
+- includeSelectors: true
+  pairs:
+    variant: production
+

@@ -1,16 +1,20 @@
 namePrefix: dev-
-commonLabels:
-  variant: dev
 resources:
-  - ../../base
-patchesStrategicMerge:
-  - deployment.yaml
+- ../../base
 configMapGenerator:
-  - name: springboot-app-config
-    files:
-      - application.properties
+- files:
+  - application.properties
+  name: springboot-app-config
 generatorOptions:
   disableNameSuffixHash: true
 images:
-  - name: reachnaveen/springboot-app
-    newTag: dev-20 # Set dynamically from CI
+- name: reachnaveen/springboot-app
+  newTag: dev-20
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+labels:
+- includeSelectors: true
+  pairs:
+    variant: dev
+patches:
+- path: deployment.yaml

@@ -1,6 +1,34 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
-  name: the-deployment
+  name: springboot-app
 spec:
-  replicas: 3
+  replicas: 2
+  strategy:
+    blueGreen:
+      activeService: springboot-app-active
+      previewService: springboot-app-preview
+      autoPromotionEnabled: true
+  selector:
+    matchLabels:
+      app: springboot-app
+  template:
+    metadata:
+      labels:
+        app: springboot-app
+        track: stable
+    spec:
+      containers:
+      - name: the-container
+        image: reachnaveen/springboot-app:latest
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: config-volume
+            mountPath: /config/application.properties
+            subPath: application.properties
+      volumes:
+        - name: config-volume
+          configMap:
+            name: springboot-app-config
