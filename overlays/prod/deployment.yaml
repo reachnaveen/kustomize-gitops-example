@@ -16,7 +16,6 @@ spec:
     metadata:
       labels:
         app: springboot-app
-        track: stable
     spec:
       containers:
       - name: the-container
