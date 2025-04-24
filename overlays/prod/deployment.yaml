@@ -9,6 +9,7 @@ spec:
       activeService: springboot-app-active
       previewService: springboot-app-preview
       autoPromotionEnabled: true
+      autoPromotionSeconds: 150
   selector:
     matchLabels:
       app: springboot-app
