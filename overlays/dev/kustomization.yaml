@@ -1,20 +1,20 @@
 namePrefix: dev-
 resources:
-- ../../base
+  - ../../base
 configMapGenerator:
-- files:
-  - application.properties
-  name: springboot-app-config
+  - files:
+      - application.properties
+    name: springboot-app-config
 generatorOptions:
   disableNameSuffixHash: true
 images:
-- name: reachnaveen/springboot-app
-  newTag: dev-20
+  - name: reachnaveen/springboot-app
+    newTag: dev-21
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 labels:
-- includeSelectors: true
-  pairs:
-    variant: dev
+  - includeSelectors: true
+    pairs:
+      variant: dev
 patches:
-- path: deployment.yaml
+  - path: deployment.yaml
