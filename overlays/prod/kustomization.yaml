@@ -1,4 +1,3 @@
-namePrefix: production-
 resources:
  - deployment.yaml
  - ingress.yaml
