@@ -14,11 +14,11 @@ spec:
               service:
                 name: springboot-app-active
                 port:
-                  number: 80
+                  number: 8082
           - path: /green
             pathType: Prefix
             backend:
               service:
                 name: springboot-app-preview
                 port:
-                  number: 80
+                  number: 8082
