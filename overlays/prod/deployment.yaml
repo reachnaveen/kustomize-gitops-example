@@ -8,6 +8,7 @@ spec:
     blueGreen:
       activeService: springboot-app-active
       previewService: springboot-app-preview
+      autoPromotionEnabled: false
       autoPromotionSeconds: 150
   selector:
     matchLabels:
