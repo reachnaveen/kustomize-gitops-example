@@ -1,21 +1,20 @@
 resources:
- - deployment.yaml
- - ingress.yaml
- - bluegreen-service.yaml
- - springboot-app-preview.yaml
+  - deployment.yaml
+  - ingress.yaml
+  - bluegreen-service.yaml
+  - springboot-app-preview.yaml
 configMapGenerator:
-- files:
-  - application.properties
-  name: springboot-app-config
+  - files:
+      - application.properties
+    name: springboot-app-config
 generatorOptions:
   disableNameSuffixHash: true
 images:
-- name: reachnaveen/springboot-app
-  newTag: prod-20
+  - name: reachnaveen/springboot-app
+    newTag: prod-21
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 labels:
-- includeSelectors: false
-  pairs:
-    variant: production
-
+  - includeSelectors: false
+    pairs:
+      variant: production
