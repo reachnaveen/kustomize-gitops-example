@@ -12,7 +12,7 @@ public class HelloController {
 
 	@RequestMapping("/")
 	public String index() {
-		return "Hello Green " + greeterMessageFormat;
+		return "Hello Blue-Green " + greeterMessageFormat;
 	}
 
 }
