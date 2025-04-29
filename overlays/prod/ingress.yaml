@@ -4,16 +4,20 @@ metadata:
   name: springboot-app-ingress
 spec:
   rules:
-    - http:
+    - host: myapp.arrivia.com
+      http:
         paths:
-          - path: /blue
+          - path: /
             pathType: Prefix
             backend:
               service:
                 name: springboot-app-active
                 port:
                   number: 80
-          - path: /green
+    - host: myapp-green.arrivia.com
+      http:
+        paths:
+          - path: /
             pathType: Prefix
             backend:
               service:
