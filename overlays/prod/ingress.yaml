@@ -4,7 +4,7 @@ metadata:
   name: springboot-app-ingress
 spec:
   rules:
-    - host: myapp.arrivia.com
+    - host: myapp.test.com
       http:
         paths:
           - path: /
@@ -14,7 +14,7 @@ spec:
                 name: springboot-app-active
                 port:
                   number: 80
-    - host: myapp-green.arrivia.com
+    - host: myapp-green.test.com
       http:
         paths:
           - path: /
