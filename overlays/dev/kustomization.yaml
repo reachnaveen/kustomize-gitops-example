@@ -9,7 +9,7 @@ generatorOptions:
   disableNameSuffixHash: true
 images:
   - name: reachnaveen/springboot-app
-    newTag: dev-31
+    newTag: dev-32
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 labels:
